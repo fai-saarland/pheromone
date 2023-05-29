@@ -36,8 +36,7 @@ LDFLAGS += -lstdc++
 SRC  = policy_server
 SRC += policy_client
 
-PROTO  = base
-PROTO += fdr
+PROTO  = fdr
 PROTO += policy
 
 GRPC_PROTO = policy
