@@ -1,0 +1,28 @@
+/***
+ * Copyright (c)2023 Daniel Fiser <danfis@danfis.cz>. All rights reserved.
+ * This file is part of bughive licensed under 3-clause BSD License (see file
+ * LICENSE, or https://opensource.org/licenses/BSD-3-Clause)
+ */
+
+syntax = "proto2";
+
+import "fdr.proto";
+
+package phrm.policy;
+
+service Policy {
+    rpc GetFDRTaskFD(RequestFDRTaskFD) returns (ResponseFDRTaskFD) {}
+}
+
+message RequestFDRStateOperator {
+    required fdr.State state = 1;
+}
+
+message ResponseFDRStateOperator {
+    required int32 operator = 1;
+}
+
+message RequestFDRTaskFD { }
+message ResponseFDRTaskFD {
+    required string task = 1;
+}

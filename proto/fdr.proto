@@ -1,0 +1,71 @@
+/***
+ * Copyright (c)2023 Daniel Fiser <danfis@danfis.cz>. All rights reserved.
+ * This file is part of bughive licensed under 3-clause BSD License (see file
+ * LICENSE, or https://opensource.org/licenses/BSD-3-Clause)
+ */
+
+syntax = "proto2";
+
+package phrm.fdr;
+
+/**
+ * A fact in  is a pair of variable ID and its value.
+ */
+message Fact {
+    required int32 var = 1;
+    required int32 val = 2;
+}
+
+/**
+ * State assigns value to all variables.
+ */
+message State {
+    repeated int32 val = 1;
+}
+
+/**
+ * Partial state is a set of facts
+ */
+message PartState {
+    repeated Fact fact = 1;
+}
+
+/**
+ * Definition of a variable.
+ */
+message Var {
+    // Number of values the variable has. Values are indexed from 0 to range - 1
+    required int32 range = 1;
+    // Name of the variable
+    required string name = 2;
+    // Name of each variable-value pair
+    repeated string fact_name = 3;
+}
+
+/**
+ * Conditional effect
+ */
+message CondEff {
+    required PartState pre = 1;
+    required PartState eff = 2;
+}
+
+message Operator {
+    // Unique ID of the operator
+    required int32 id = 1;
+    required string name = 2;
+    required int32 cost = 3;
+    required PartState pre = 4;
+    required PartState eff = 5;
+    repeated CondEff cond_eff = 6;
+}
+
+/**
+ * Definition of the FDR planning task
+ */
+message Task {
+    repeated Var var = 1;
+    repeated Operator operator = 2;
+    required State init_state = 3;
+    required PartState goal = 4;
+}
