@@ -33,6 +33,9 @@ class PolicyImpl final : public phrm::policy::Policy::Service {
                               const phrm::policy::RequestFDRTaskFD *req,
                               phrm::policy::ResponseFDRTaskFD *res) override
     {
+        std::cout << "Request: GetFDRTaskFD " << std::endl;
+        std::cout.flush();
+
         if (fdr_task_fd == NULL)
             return grpc::Status(grpc::StatusCode::UNIMPLEMENTED, "Unimplemented");
 
@@ -50,9 +53,9 @@ class PolicyImpl final : public phrm::policy::Policy::Service {
 };
 
 int phrmPolicyServer(const char *url,
-                        phrm_policy_req_fdr_task_fd fdr_task_fd,
-                        phrm_policy_req_fdr_operator fdr_op,
-                        void *userdata)
+                     phrm_policy_req_fdr_task_fd fdr_task_fd,
+                     phrm_policy_req_fdr_operator fdr_op,
+                     void *userdata)
 {
     PolicyImpl service(fdr_task_fd, fdr_op, userdata);
 
@@ -61,6 +64,7 @@ int phrmPolicyServer(const char *url,
     builder.RegisterService(&service);
     std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
     std::cout << "Server listening on " << url << std::endl;
+    std::cout.flush();
     server->Wait();
 
     return 0;
