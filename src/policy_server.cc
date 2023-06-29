@@ -16,12 +16,12 @@
 class PolicyImpl final : public phrm::policy::Policy::Service {
   private:
     phrm_policy_req_fdr_task_fd fdr_task_fd;
-    phrm_policy_req_fdr_operator fdr_op;
+    phrm_policy_req_fdr_state_operator fdr_op;
     void *userdata;
 
   public:
     explicit PolicyImpl(phrm_policy_req_fdr_task_fd fdr_task_fd,
-                        phrm_policy_req_fdr_operator fdr_op,
+                        phrm_policy_req_fdr_state_operator fdr_op,
                         void *userdata)
         : fdr_task_fd(fdr_task_fd),
           fdr_op(fdr_op),
@@ -50,11 +50,33 @@ class PolicyImpl final : public phrm::policy::Policy::Service {
 
         return grpc::Status::OK;
     }
+
+    grpc::Status GetFDRStateOperator(grpc::ServerContext *ctx,
+                                     const phrm::policy::RequestFDRStateOperator *req,
+                                     phrm::policy::ResponseFDRStateOperator *res) override
+    {
+        std::cout << "Request: GetFDRStateOperator " << std::endl;
+        std::cout.flush();
+
+        const phrm::fdr::State &bstate = req->state();
+        int state_size = bstate.val_size();
+        if (state_size <= 0){
+            return grpc::Status(grpc::StatusCode::INTERNAL,
+                                "Invalid request: empty state");
+        }
+        int *state = (int *)alloca(sizeof(int) * state_size);
+        for (int i = 0; i < state_size; ++i)
+            state[i] = bstate.val(i);
+
+        int op_id = fdr_op(state, userdata);
+        res->set_operator_(op_id);
+        return grpc::Status::OK;
+    }
 };
 
 int phrmPolicyServer(const char *url,
                      phrm_policy_req_fdr_task_fd fdr_task_fd,
-                     phrm_policy_req_fdr_operator fdr_op,
+                     phrm_policy_req_fdr_state_operator fdr_op,
                      void *userdata)
 {
     PolicyImpl service(fdr_task_fd, fdr_op, userdata);

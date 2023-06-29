@@ -14,14 +14,14 @@ extern "C" {
 #endif /* __cplusplus */
 
 typedef char *(*phrm_policy_req_fdr_task_fd)(size_t *size, void *userdata);
-typedef int (*phrm_policy_req_fdr_operator)(const int *state, void *userdata);
+typedef int (*phrm_policy_req_fdr_state_operator)(const int *state, void *ud);
 
 /**
  * Runs the server and blocks as long as the server is running
  */
 int phrmPolicyServer(const char *url,
                      phrm_policy_req_fdr_task_fd req_fdr_fd,
-                     phrm_policy_req_fdr_operator req_fdr_op,
+                     phrm_policy_req_fdr_state_operator req_fdr_state_op,
                      void *userdata);
 
 #ifdef __cplusplus

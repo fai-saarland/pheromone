@@ -12,6 +12,7 @@ package phrm.policy;
 
 service Policy {
     rpc GetFDRTaskFD(RequestFDRTaskFD) returns (ResponseFDRTaskFD) {}
+    rpc GetFDRStateOperator(RequestFDRStateOperator) returns (ResponseFDRStateOperator) {}
 }
 
 message RequestFDRStateOperator {
