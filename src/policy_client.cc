@@ -39,9 +39,12 @@ char *phrmPolicyFDRTaskFD(phrm_policy_t *p)
     phrm::policy::ResponseFDRTaskFD res;
     grpc::Status st = p->stub->GetFDRTaskFD(&ctx, req, &res);
     if (!st.ok()){
+        // TODO: Refactor
         std::cerr << "Error: Cannot get response for GetFDRTaskFD"
             << (st.error_code() == grpc::StatusCode::UNIMPLEMENTED
                     ? " (UNIMPLEMENTED)" : "")
+            << (st.error_code() == grpc::StatusCode::INTERNAL
+                    ? " (INTERNAL)" : "")
             << " :: " << st.error_message()
             << std::endl;
         return NULL;
@@ -57,4 +60,34 @@ char *phrmPolicyFDRTaskFD(phrm_policy_t *p)
     strcpy(out, res.task().c_str());
     out[size] = '\x0';
     return out;
+}
+
+int phrmPolicyFDRStateOperator(phrm_policy_t *p, const int *state, int state_size)
+{
+    grpc::ClientContext ctx;
+    phrm::policy::RequestFDRStateOperator req;
+    phrm::fdr::State *req_state = req.mutable_state();
+    for (int i = 0; i < state_size; ++i)
+        req_state->add_val(state[i]);
+    phrm::policy::ResponseFDRStateOperator res;
+    grpc::Status st = p->stub->GetFDRStateOperator(&ctx, req, &res);
+    if (!st.ok()){
+        // TODO: Refactor
+        std::cerr << "Error: Cannot get response for GetFDRStateOperator"
+            << (st.error_code() == grpc::StatusCode::UNIMPLEMENTED
+                    ? " (UNIMPLEMENTED)" : "")
+            << (st.error_code() == grpc::StatusCode::INTERNAL
+                    ? " (INTERNAL)" : "")
+            << " :: " << st.error_message()
+            << std::endl;
+        return -1;
+    }
+
+    if (!res.has_operator_()){
+        std::cerr
+            << "Error: Invalid format of the response to GetFDRStateOperator"
+            << std::endl;
+        return -1;
+    }
+    return res.operator_();
 }

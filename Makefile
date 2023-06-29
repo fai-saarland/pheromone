@@ -62,6 +62,7 @@ OBJS := $(foreach obj,$(SRC),.objs/$(obj).o)
 
 TESTS  = policy_server
 TESTS += policy_cat_fdr_task_fd
+TESTS += policy_cat_fdr_init_state_op
 TESTS := $(foreach t,$(TESTS),test/test_$(t))
 
 all: libpheromone.a test
@@ -94,6 +95,7 @@ python/rpc/%_pb2.py: proto/%.proto
 	$(PROTOC) -Iproto --python_out=python/rpc $<
 
 clean:
+	rm -f *.a
 	rm -f .objs/*.o
 	rm -f .objs/rpc/*.o
 	rm -f src/rpc/*.h

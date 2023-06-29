@@ -85,6 +85,11 @@ int phrmPolicyServer(const char *url,
     builder.AddListeningPort(url, grpc::InsecureServerCredentials());
     builder.RegisterService(&service);
     std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
+    if (!server){
+        std::cerr << "Error: Failed to create a server." << std::endl;
+        return 1;
+    }
+
     std::cout << "Server listening on " << url << std::endl;
     std::cout.flush();
     server->Wait();

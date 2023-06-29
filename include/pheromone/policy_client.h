@@ -31,6 +31,11 @@ void phrmPolicyDel(phrm_policy_t *p);
  */
 char *phrmPolicyFDRTaskFD(phrm_policy_t *p);
 
+/**
+ * Get policy's operator for the given FDR state
+ */
+int phrmPolicyFDRStateOperator(phrm_policy_t *p, const int *state, int state_size);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
