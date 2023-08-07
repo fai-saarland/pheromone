@@ -82,7 +82,10 @@ int phrmPolicyServer(const char *url,
     PolicyImpl service(fdr_task_fd, fdr_op, userdata);
 
     grpc::ServerBuilder builder;
-    builder.AddListeningPort(url, grpc::InsecureServerCredentials());
+    // selected_port will be populated in builder.BuildAndStart() if this is successful
+    // can be different from port specified in url, i.e., url could be localhost:0 and port could be 12345
+    int selected_port = -1;
+    builder.AddListeningPort(url, grpc::InsecureServerCredentials(), &selected_port);
     builder.RegisterService(&service);
     std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
     if (!server){
@@ -90,7 +93,8 @@ int phrmPolicyServer(const char *url,
         return 1;
     }
 
-    std::cout << "Server listening on " << url << std::endl;
+    std::cout << "Successfully started server using url " << url << std::endl;
+    std::cout << "Server listening on port " << selected_port << std::endl;
     std::cout.flush();
     server->Wait();
 
