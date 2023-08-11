@@ -16,9 +16,12 @@
 struct phrm_policy {
     std::unique_ptr<phrm::policy::Policy::Stub> stub;
     explicit phrm_policy(const std::string &addr)
-        : stub(phrm::policy::Policy::NewStub(
-                grpc::CreateChannel(addr, grpc::InsecureChannelCredentials())))
-    { }
+    {
+        grpc::ChannelArguments args;
+        args.SetMaxReceiveMessageSize(1024*1024*1024);
+        std::shared_ptr<grpc::Channel> custom_channel(grpc::CreateCustomChannel(addr, grpc::InsecureChannelCredentials(), args));
+        stub = phrm::policy::Policy::NewStub(custom_channel);
+    }
 };
 
 phrm_policy_t *phrmPolicyConnect(const char *url)
