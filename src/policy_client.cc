@@ -83,14 +83,14 @@ int phrmPolicyFDRStateOperator(phrm_policy_t *p, const int *state, int state_siz
                     ? " (INTERNAL)" : "")
             << " :: " << st.error_message()
             << std::endl;
-        return -1;
+        return POLICY_CLIENT_ERROR_CODE;
     }
 
     if (!res.has_operator_()){
         std::cerr
             << "Error: Invalid format of the response to GetFDRStateOperator"
             << std::endl;
-        return -1;
+        return POLICY_CLIENT_ERROR_CODE;
     }
     return res.operator_();
 }

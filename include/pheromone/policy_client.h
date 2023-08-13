@@ -16,6 +16,9 @@ extern "C" {
 /** Forward declaration */
 typedef struct phrm_policy phrm_policy_t;
 
+/** Global constants */
+#define POLICY_CLIENT_ERROR_CODE (-2)
+
 /**
  * Create a connection to the policy server.
  */
@@ -32,7 +35,8 @@ void phrmPolicyDel(phrm_policy_t *p);
 char *phrmPolicyFDRTaskFD(phrm_policy_t *p);
 
 /**
- * Get policy's operator for the given FDR state
+ * Get policy's operator for the given FDR state. Returns operator index (>=0),
+ * -1 if no operator is applicable, or POLICY_CLIENT_ERROR_CODE (=-2) if there is an error.
  */
 int phrmPolicyFDRStateOperator(phrm_policy_t *p, const int *state, int state_size);
 
