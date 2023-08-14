@@ -16,9 +16,12 @@
 struct phrm_policy {
     std::unique_ptr<phrm::policy::Policy::Stub> stub;
     explicit phrm_policy(const std::string &addr)
-        : stub(phrm::policy::Policy::NewStub(
-                grpc::CreateChannel(addr, grpc::InsecureChannelCredentials())))
-    { }
+    {
+        grpc::ChannelArguments args;
+        args.SetMaxReceiveMessageSize(1024*1024*1024);
+        std::shared_ptr<grpc::Channel> custom_channel(grpc::CreateCustomChannel(addr, grpc::InsecureChannelCredentials(), args));
+        stub = phrm::policy::Policy::NewStub(custom_channel);
+    }
 };
 
 phrm_policy_t *phrmPolicyConnect(const char *url)
@@ -80,14 +83,14 @@ int phrmPolicyFDRStateOperator(phrm_policy_t *p, const int *state, int state_siz
                     ? " (INTERNAL)" : "")
             << " :: " << st.error_message()
             << std::endl;
-        return -1;
+        return POLICY_CLIENT_ERROR_CODE;
     }
 
     if (!res.has_operator_()){
         std::cerr
             << "Error: Invalid format of the response to GetFDRStateOperator"
             << std::endl;
-        return -1;
+        return POLICY_CLIENT_ERROR_CODE;
     }
     return res.operator_();
 }

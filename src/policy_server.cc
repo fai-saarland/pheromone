@@ -33,8 +33,9 @@ class PolicyImpl final : public phrm::policy::Policy::Service {
                               const phrm::policy::RequestFDRTaskFD *req,
                               phrm::policy::ResponseFDRTaskFD *res) override
     {
+#ifndef NDEBUG
         std::cout << "Request: GetFDRTaskFD " << std::endl;
-        std::cout.flush();
+#endif
 
         if (fdr_task_fd == NULL)
             return grpc::Status(grpc::StatusCode::UNIMPLEMENTED, "Unimplemented");
@@ -55,8 +56,9 @@ class PolicyImpl final : public phrm::policy::Policy::Service {
                                      const phrm::policy::RequestFDRStateOperator *req,
                                      phrm::policy::ResponseFDRStateOperator *res) override
     {
+#ifndef NDEBUG
         std::cout << "Request: GetFDRStateOperator " << std::endl;
-        std::cout.flush();
+#endif
 
         const phrm::fdr::State &bstate = req->state();
         int state_size = bstate.val_size();
@@ -95,7 +97,6 @@ int phrmPolicyServer(const char *url,
 
     std::cout << "Successfully started server using url " << url << std::endl;
     std::cout << "Server listening on port " << selected_port << std::endl;
-    std::cout.flush();
     server->Wait();
 
     return 0;

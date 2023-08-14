@@ -13,7 +13,7 @@ GRPC_PYTHON_PLUGIN ?= /usr/bin/grpc_python_plugin
 ifeq '$(DEBUG)' 'yes'
   CXXFLAGS := -g
 else
-  CXXFLAGS += -O3 -pipe
+  CXXFLAGS += -O3 -DNDEBUG -pipe
 endif
 ifeq '$(WERROR)' 'yes'
   CXXFLAGS += -Werror

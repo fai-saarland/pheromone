@@ -16,3 +16,5 @@ src/rpc/*.cc
 test/test_*
 python/rpc/*.py
 env/
+.idea
+CMakeLists.txt
