@@ -22,15 +22,22 @@ CXXFLAGS += -Wall -pedantic
 CXXFLAGS += -Iinclude
 CXXFLAGS += $(shell pkg-config --cflags grpc++ protobuf)
 
+# TODO make sure this addition does not mess up libpheromone.a
+CXXFLAGS += -fPIC
+
 ifeq '$(DEBUG)' 'yes'
   CFLAGS := -g -Iinclude -Wall -pedantic -Werror
 else
   CFLAGS := -O3 -pipe -Iinclude -Wall -pedantic -Werror
 endif
 
+COMMON_LDFLAGS := $(shell pkg-config --libs grpc++ protobuf)
+COMMON_LDFLAGS += -lstdc++
+
+SO_LDFLAGS = $(LDFLAGS)
+SO_LDFLAGS += $(COMMON_LDFLAGS)
 LDFLAGS += libpheromone.a
-LDFLAGS += $(shell pkg-config --libs grpc++ protobuf)
-LDFLAGS += -lstdc++
+LDFLAGS += $(COMMON_LDFLAGS)
 
 
 SRC  = policy_server
@@ -65,12 +72,16 @@ TESTS += policy_cat_fdr_task_fd
 TESTS += policy_cat_fdr_init_state_op
 TESTS := $(foreach t,$(TESTS),test/test_$(t))
 
-all: libpheromone.a test
+all: libpheromone.a libpheromone.so test
 
 libpheromone.a: $(OBJS) $(DEP)
 	rm -f $@
 	$(AR) cr $@ $(OBJS)
 	$(RANLIB) $@
+
+
+libpheromone.so: $(OBJS) $(DEP)
+	$(LINK.cc) -shared $(OBJS) $(SO_LDFLAGS) -o $@
 
 test: $(TESTS)
 

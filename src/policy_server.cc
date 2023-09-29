@@ -12,11 +12,13 @@
 #include <grpcpp/server.h>
 #include <grpcpp/server_builder.h>
 #include <grpcpp/server_context.h>
+#include <string>
 
 class PolicyImpl final : public phrm::policy::Policy::Service {
   private:
-    phrm_policy_req_fdr_task_fd fdr_task_fd;
-    phrm_policy_req_fdr_state_operator fdr_op;
+    const phrm_policy_req_fdr_task_fd fdr_task_fd;
+    const phrm_policy_req_fdr_state_operator fdr_op;
+    const python_phrm_policy_req_fdr_state_operator python_fdr_op;
     void *userdata;
 
   public:
@@ -25,7 +27,17 @@ class PolicyImpl final : public phrm::policy::Policy::Service {
                         void *userdata)
         : fdr_task_fd(fdr_task_fd),
           fdr_op(fdr_op),
+          python_fdr_op(nullptr),
           userdata(userdata)
+    {
+    }
+
+    explicit PolicyImpl(phrm_policy_req_fdr_task_fd fdr_task_fd,
+                        python_phrm_policy_req_fdr_state_operator python_fdr_op)
+            : fdr_task_fd(fdr_task_fd),
+              fdr_op(nullptr),
+              python_fdr_op(python_fdr_op),
+              userdata(nullptr)
     {
     }
 
@@ -67,22 +79,28 @@ class PolicyImpl final : public phrm::policy::Policy::Service {
                                 "Invalid request: empty state");
         }
         int *state = (int *)alloca(sizeof(int) * state_size);
-        for (int i = 0; i < state_size; ++i)
-            state[i] = bstate.val(i);
+        int op_id;
 
-        int op_id = fdr_op(state, userdata);
+        if (fdr_op) {
+            for (int i = 0; i < state_size; ++i) {
+                state[i] = bstate.val(i);
+            }
+            op_id = fdr_op(state, userdata);
+        } else {
+            assert(python_fdr_op);
+            std::string s;
+            for (int i = 0; i < state_size; ++i)
+                s += std::to_string(bstate.val(i)) + " ";
+            op_id = python_fdr_op(s.c_str());
+        }
+
         res->set_operator_(op_id);
         return grpc::Status::OK;
     }
 };
 
-int phrmPolicyServer(const char *url,
-                     phrm_policy_req_fdr_task_fd fdr_task_fd,
-                     phrm_policy_req_fdr_state_operator fdr_op,
-                     void *userdata)
+int runPolicyService(PolicyImpl &service, const char *url)
 {
-    PolicyImpl service(fdr_task_fd, fdr_op, userdata);
-
     grpc::ServerBuilder builder;
     // selected_port will be populated in builder.BuildAndStart() if this is successful
     // can be different from port specified in url, i.e., url could be localhost:0 and port could be 12345
@@ -100,4 +118,39 @@ int phrmPolicyServer(const char *url,
     server->Wait();
 
     return 0;
+}
+
+int phrmPolicyServer(const char *url,
+                     phrm_policy_req_fdr_task_fd fdr_task_fd,
+                     phrm_policy_req_fdr_state_operator fdr_op,
+                     void *userdata)
+{
+    PolicyImpl service(fdr_task_fd, fdr_op, userdata);
+    return runPolicyService(service, url);
+}
+
+
+struct PythonHelper {
+    inline static char* python_string = nullptr;
+    inline static void_callback provide_fdr = nullptr;
+
+    inline static char *read_python_fdr(size_t* size_p, void*) {
+        assert(provide_fdr);
+        provide_fdr();
+        assert(python_string);
+        *size_p = strlen(python_string);
+        return python_string;
+    }
+};
+
+void providePythonString(const char *s) {
+    PythonHelper::python_string = strdup(s);
+}
+
+
+int pythonPolicyServer(const char *url, void_callback provide_fdr, python_phrm_policy_req_fdr_state_operator fdr_op)
+{
+    PythonHelper::provide_fdr = provide_fdr;
+    PolicyImpl service(PythonHelper::read_python_fdr, fdr_op);
+    return runPolicyService(service, url);
 }
