@@ -1,6 +1,7 @@
 import ctypes
 import os.path
 import sys
+import traceback
 
 pheromone_dir = os.path.dirname(__file__)
 pheromone_so_path = os.path.join(pheromone_dir, "libpheromone.so")
@@ -31,5 +32,10 @@ def start_server(url, get_task_func, apply_policy_func):
 
     def apply(state_str):
         state_as_list = [int(x) for x in state_str.decode().split()]
-        return apply_policy_func(state_as_list)
+        try:
+            return apply_policy_func(state_as_list)
+        except Exception:
+            print(traceback.print_exc())
+            sys.exit(1)
+
     cdll.pythonPolicyServer(url.encode(), provide_task_t(provide_task), req_op_t(apply))
