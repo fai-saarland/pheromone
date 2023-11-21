@@ -50,11 +50,11 @@ GRPC_PROTO = policy
 
 PROTO_H := $(foreach p,$(PROTO),src/rpc/$(p).pb.h)
 PROTO_CC := $(foreach p,$(PROTO),src/rpc/$(p).pb.cc)
-PROTO_PY := $(foreach p,$(PROTO),python/rpc/$(p)_pb2.py)
+PROTO_PY := $(foreach p,$(PROTO),pyphrm/$(p)_pb2.py)
 
 GRPC_PROTO_H := $(foreach p,$(GRPC_PROTO),src/rpc/$(p).grpc.pb.h)
 GRPC_PROTO_CC := $(foreach p,$(GRPC_PROTO),src/rpc/$(p).grpc.pb.cc)
-GRPC_PROTO_PY := $(foreach p,$(GRPC_PROTO),python/rpc/$(p)_pb2_grpc.py)
+GRPC_PROTO_PY := $(foreach p,$(GRPC_PROTO),pyphrm/$(p)_pb2_grpc.py)
 
 DEP  = Makefile
 DEP += $(PROTO_H)
@@ -100,10 +100,12 @@ test/test_%: test/%.c libpheromone.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 
 python: $(PROTO_PY) $(GRPC_PROTO_PY)
-python/rpc/%_pb2_grpc.py: proto/%.proto
-	$(PROTOC) -Iproto --grpc_out=python/rpc --plugin=protoc-gen-grpc=$(GRPC_PYTHON_PLUGIN) $<
-python/rpc/%_pb2.py: proto/%.proto
-	$(PROTOC) -Iproto --python_out=python/rpc $<
+pyphrm/%_pb2_grpc.py: proto/%.proto
+	$(PROTOC) -Iproto --grpc_out=pyphrm --plugin=protoc-gen-grpc=$(GRPC_PYTHON_PLUGIN) $<
+	sed -i 's/\(import .*_pb2\)/from . \1/g' $@
+pyphrm/%_pb2.py: proto/%.proto
+	$(PROTOC) -Iproto --python_out=pyphrm $<
+	sed -i 's/\(import .*_pb2\)/from . \1/g' $@
 
 clean:
 	rm -f *.a
@@ -111,7 +113,8 @@ clean:
 	rm -f .objs/rpc/*.o
 	rm -f src/rpc/*.h
 	rm -f src/rpc/*.cc
-	rm -rf python/rpc/*.py
+	rm -rf pyphrm/*_pb2.py
+	rm -rf pyphrm/*_pb2_grpc.py
 	rm -f $(TESTS)
 
 mrproper: clean
