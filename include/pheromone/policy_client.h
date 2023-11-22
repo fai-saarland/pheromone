@@ -40,6 +40,15 @@ char *phrmPolicyFDRTaskFD(phrm_policy_t *p);
  */
 int phrmPolicyFDRStateOperator(phrm_policy_t *p, const int *state, int state_size);
 
+/**
+ * Get probability distribution over applicable operators.
+ */
+int phrmPolicyFDRStateOperatorsProb(phrm_policy_t *p,
+                                    const int *state,
+                                    int state_size,
+                                    int *op_size,
+                                    int **op_ids,
+                                    float **op_probs);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

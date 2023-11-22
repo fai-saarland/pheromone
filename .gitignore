@@ -14,7 +14,8 @@ __pycache__
 src/rpc/*.h
 src/rpc/*.cc
 test/test_*
-python/rpc/*.py
+pyphrm/*_pb2.py
+pyphrm/*_pb2_grpc.py
 env/
 .idea
 CMakeLists.txt

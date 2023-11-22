@@ -51,19 +51,36 @@ int main(int argc, char *argv[])
     }
     printf("\n");
 
-    int op = phrmPolicyFDRStateOperator(p, state, state_size);
-    printf("Operator: %d\n", op);
+    int op_size = 0;
+    int *op_ids = NULL;
+    float *op_probs = NULL;
+    int st = phrmPolicyFDRStateOperatorsProb(p, state, state_size,
+                                             &op_size, &op_ids, &op_probs);
+    assert(st == 0);
 
-    for (int i = 0; (tmp = strstr(cur, "\nbegin_operator\n")) != NULL; ++i){
-        cur = tmp + 16;
-        if (i == op){
-            printf("Operator name: (");
-            for (; *cur != '\n' && *cur != '\x0'; ++cur)
-                printf("%c", *cur);
-            printf(")\n");
-            break;
+    for (int opi = 0; opi < op_size; ++opi){
+        int op = op_ids[opi];
+        float prob = op_probs[opi];
+        printf("Operator: %d, prob = %.4f", op, prob);
+
+        cur = task;
+        for (int i = 0; (tmp = strstr(cur, "\nbegin_operator\n")) != NULL; ++i){
+            cur = tmp + 16;
+            if (i == op){
+                printf(", name: (");
+                for (; *cur != '\n' && *cur != '\x0'; ++cur)
+                    printf("%c", *cur);
+                printf(")");
+                break;
+            }
         }
+        printf("\n");
     }
+
+    if (op_ids != NULL)
+        free(op_ids);
+    if (op_probs != NULL)
+        free(op_probs);
 
     //printf("%s\n", task);
     free(task);
