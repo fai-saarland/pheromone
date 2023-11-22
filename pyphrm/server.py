@@ -28,8 +28,11 @@ def policyServer(url, fn_fdr_task_fd, fn_fdr_state_operator):
     policy_server = PolicyServer(fn_fdr_task_fd, fn_fdr_state_operator)
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     policy_pb2_grpc.add_PolicyServicer_to_server(policy_server, server)
-    server.add_insecure_port(url)
+    selected_port = server.add_insecure_port(url)
     server.start()
+    print(f"Successfully started server using url {url}", file = sys.stdout)
+    print(f"Server listening on port {selected_port}", file = sys.stdout)
+    sys.stdout.flush();
     server.wait_for_termination()
 
 
