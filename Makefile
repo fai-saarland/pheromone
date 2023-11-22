@@ -72,7 +72,7 @@ TESTS += policy_cat_fdr_task_fd
 TESTS += policy_cat_fdr_init_state_op
 TESTS := $(foreach t,$(TESTS),test/test_$(t))
 
-all: libpheromone.a libpheromone.so test
+all: libpheromone.a test python
 
 libpheromone.a: $(OBJS) $(DEP)
 	rm -f $@
@@ -109,6 +109,7 @@ pyphrm/%_pb2.py: proto/%.proto
 
 clean:
 	rm -f *.a
+	rm -f *.so
 	rm -f .objs/*.o
 	rm -f .objs/rpc/*.o
 	rm -f src/rpc/*.h
