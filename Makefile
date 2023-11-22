@@ -70,6 +70,7 @@ OBJS := $(foreach obj,$(SRC),.objs/$(obj).o)
 TESTS  = policy_server
 TESTS += policy_cat_fdr_task_fd
 TESTS += policy_cat_fdr_init_state_op
+TESTS += policy_cat_fdr_init_state_ops_prob
 TESTS := $(foreach t,$(TESTS),test/test_$(t))
 
 all: libpheromone.a test python

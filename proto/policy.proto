@@ -13,6 +13,8 @@ package phrm.policy;
 service Policy {
     rpc GetFDRTaskFD(RequestFDRTaskFD) returns (ResponseFDRTaskFD) {}
     rpc GetFDRStateOperator(RequestFDRStateOperator) returns (ResponseFDRStateOperator) {}
+    rpc GetFDRStateOperatorsProb(RequestFDRStateOperatorsProb)
+            returns (ResponseFDRStateOperatorsProb) {}
 }
 
 message RequestFDRStateOperator {
@@ -21,6 +23,19 @@ message RequestFDRStateOperator {
 
 message ResponseFDRStateOperator {
     required int32 operator = 1;
+}
+
+message RequestFDRStateOperatorsProb {
+    required fdr.State state = 1;
+}
+
+message OperatorProb {
+    required int32 operator = 1;
+    required float prob = 2;
+}
+
+message ResponseFDRStateOperatorsProb {
+    repeated OperatorProb operator = 1;
 }
 
 message RequestFDRTaskFD { }

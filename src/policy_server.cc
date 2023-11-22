@@ -18,14 +18,17 @@ class PolicyImpl final : public phrm::policy::Policy::Service {
   private:
     const phrm_policy_req_fdr_task_fd fdr_task_fd;
     const phrm_policy_req_fdr_state_operator fdr_op;
+    const phrm_policy_req_fdr_state_operators_prob fdr_ops_prob;
     void *userdata;
 
   public:
     explicit PolicyImpl(phrm_policy_req_fdr_task_fd fdr_task_fd,
                         phrm_policy_req_fdr_state_operator fdr_op,
+                        phrm_policy_req_fdr_state_operators_prob fdr_ops_prob,
                         void *userdata)
         : fdr_task_fd(fdr_task_fd),
           fdr_op(fdr_op),
+          fdr_ops_prob(fdr_ops_prob),
           userdata(userdata)
     {
     }
@@ -67,16 +70,57 @@ class PolicyImpl final : public phrm::policy::Policy::Service {
             return grpc::Status(grpc::StatusCode::INTERNAL,
                                 "Invalid request: empty state");
         }
-        int *state = (int *)alloca(sizeof(int) * state_size);
-        int op_id;
 
-        for (int i = 0; i < state_size; ++i){
+        int *state = (int *)alloca(sizeof(int) * state_size);
+        for (int i = 0; i < state_size; ++i)
             state[i] = bstate.val(i);
-        }
-        op_id = fdr_op(state, userdata);
+
+        int op_id = fdr_op(state, userdata);
 
         res->set_operator_(op_id);
         return grpc::Status::OK;
+    }
+
+    grpc::Status GetFDRStateOperatorsProb(grpc::ServerContext *ctx,
+                                          const phrm::policy::RequestFDRStateOperatorsProb *req,
+                                          phrm::policy::ResponseFDRStateOperatorsProb *res) override
+    {
+#ifndef NDEBUG
+        std::cout << "Request: GetFDRStateOperatorsProb " << std::endl;
+#endif
+        const phrm::fdr::State &bstate = req->state();
+        int state_size = bstate.val_size();
+        if (state_size <= 0){
+            return grpc::Status(grpc::StatusCode::INTERNAL,
+                                "Invalid request: empty state");
+        }
+
+        int *state = (int *)alloca(sizeof(int) * state_size);
+        for (int i = 0; i < state_size; ++i)
+            state[i] = bstate.val(i);
+
+        int op_size = 0;
+        int *op_ids = NULL;
+        float *op_probs = NULL;
+
+        int st = fdr_ops_prob(state, &op_size, &op_ids, &op_probs, userdata);
+        if (st == 0){
+            for (int opi = 0; opi < op_size; ++opi){
+                phrm::policy::OperatorProb *op_prob = res->add_operator_();
+                op_prob->set_operator_(op_ids[opi]);
+                op_prob->set_prob(op_probs[opi]);
+            }
+
+            if (op_ids != NULL)
+                free(op_ids);
+            if (op_probs != NULL)
+                free(op_probs);
+
+            return grpc::Status::OK;
+        }
+
+        return grpc::Status(grpc::StatusCode::INTERNAL,
+                            "Error occurred when obtaining operator probabilities");
     }
 };
 
@@ -104,8 +148,9 @@ int runPolicyService(PolicyImpl &service, const char *url)
 int phrmPolicyServer(const char *url,
                      phrm_policy_req_fdr_task_fd fdr_task_fd,
                      phrm_policy_req_fdr_state_operator fdr_op,
+                     phrm_policy_req_fdr_state_operators_prob fdr_ops_prob,
                      void *userdata)
 {
-    PolicyImpl service(fdr_task_fd, fdr_op, userdata);
+    PolicyImpl service(fdr_task_fd, fdr_op, fdr_ops_prob, userdata);
     return runPolicyService(service, url);
 }
