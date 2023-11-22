@@ -45,10 +45,6 @@ int main(int argc, char *argv[])
         cur = end;
     }
 
-    assert(state[24] == 0 && state[40] == 0 && state[51] == 0);
-    state[24] = 1;
-    state[40] = 1;
-    state[51] = 1;
     printf("Initial state:");
     for (int i = 0; i < state_size; ++i){
         printf(" %d", state[i]);
@@ -69,7 +65,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    printf("%s\n", task);
+    //printf("%s\n", task);
     free(task);
     phrmPolicyDel(p);
     return 0;
