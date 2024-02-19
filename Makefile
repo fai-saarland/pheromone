@@ -18,6 +18,7 @@ endif
 ifeq '$(WERROR)' 'yes'
   CXXFLAGS += -Werror
 endif
+CXXFLAGS += -std=c++20
 CXXFLAGS += -Wall -pedantic
 CXXFLAGS += -Iinclude
 CXXFLAGS += $(shell pkg-config --cflags grpc++ protobuf)
@@ -103,10 +104,12 @@ test/test_%: test/%.c libpheromone.a
 python: $(PROTO_PY) $(GRPC_PROTO_PY)
 pyphrm/%_pb2_grpc.py: proto/%.proto
 	$(PROTOC) -Iproto --grpc_out=pyphrm --plugin=protoc-gen-grpc=$(GRPC_PYTHON_PLUGIN) $<
-	sed -i 's/\(import .*_pb2\)/from . \1/g' $@
+	sed 's/\(import .*_pb2\)/from . \1/g' $@ > $@.tmp
+	mv $@.tmp $@
 pyphrm/%_pb2.py: proto/%.proto
 	$(PROTOC) -Iproto --python_out=pyphrm $<
-	sed -i 's/\(import .*_pb2\)/from . \1/g' $@
+	sed 's/\(import .*_pb2\)/from . \1/g' $@ > $@.tmp
+	mv $@.tmp $@
 
 clean:
 	rm -f *.a
